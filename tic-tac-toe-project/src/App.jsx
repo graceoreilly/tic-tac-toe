@@ -1,21 +1,51 @@
 import { useState } from "react";
 
-function Square({ value, onSquareClick }) {
-  function handleClick() {
-    setValue("X"); //this set function is telling React to re-render that square whenever it's <button> is clicked
+
+export default function Game() {
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [currentMove, setCurrentMove] = useState(0);
+  const xIsNext = currentMove % 2 === 0;
+  const currentSquare = history[currentMove];
+
+  function jumpTo(nextMove) {
+    setCurrentMove(nextMove);
   }
+
+  function handlePlay(nextSquares) {
+  const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+  setHistory(nextHistory);
+  setCurrentMove(nextHistory.length - 1);
+
+  }
+
+  const moves = history.map((squares, move) => {
+    let description;
+    if (move > 0) {
+      description = 'Go to move #' + move;
+    } else {
+      description = 'Go to game start';
+    }
+    return (
+      <li key={move}>
+        <button onClick={() => jumpTo(move)}>{description}</button>
+      </li>
+    );
+  });
+
   return (
-    <button className="square" onClick={onSquareClick}>
-      {value}
-    </button>
-  ); //rendering the value variable from your component, a placeholder to show the current state in the button element
+    <div className="game">
+    <div className="game-board">
+      <Board xIsNext = {xIsNext} squares={currentSquare} onPlay={handlePlay} />
+    </div>
+    <div className="game-info">
+      <ol>{moves}</ol>
+    </div>
+  </div>
+  )
 }
 
-export default function Board() {
-  const [xIsNext, setxIsNext] = useState(true)
-  //function to add an x at whatever index is clicked
-  const [squares, setSquares] = useState(Array(9).fill(null)); //want an array with 9 in it and fill each of these 9 indexes with null
- 
+
+function Board({xIsNext, squares, onPlay}) {
   function handleClick(i) {
     if(calculateWinner(squares) || squares[i]) {
       return;
@@ -26,8 +56,7 @@ export default function Board() {
     } else {
       nextSquares[i] = "O";
     }
-    setSquares(nextSquares); //lets react know the state of the component has changed
-    setxIsNext(!xIsNext) //state updater function, the state is oppositive of its current value e.g. if true/X, then next time it will be false/O
+  onPlay(nextSquares);
   }
 
   const winner = calculateWinner(squares);
@@ -58,6 +87,17 @@ export default function Board() {
       </div>
     </>
   );
+}
+
+function Square({ value, onSquareClick }) {
+  function handleClick() {
+    setValue("X"); //this set function is telling React to re-render that square whenever it's <button> is clicked
+  }
+  return (
+    <button className="square" onClick={onSquareClick}>
+      {value}
+    </button>
+  ); //rendering the value variable from your component, a placeholder to show the current state in the button element
 }
 
 function calculateWinner(squares) {
